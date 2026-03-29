@@ -2,11 +2,11 @@
 
 pragma solidity ^0.8.18;
 
-import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol"; 
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {PriceConverter} from "./PriceConverter.sol";
 error NotOwner();
 
-contract FundMe{
+contract FundMe {
     using PriceConverter for uint256;
 
     // minimum USD people can send
@@ -21,30 +21,30 @@ contract FundMe{
 
     AggregatorV3Interface private s_priceFeed;
 
-    constructor(address priceFeed){
+    constructor(address priceFeed) {
         owner = msg.sender;
         s_priceFeed = AggregatorV3Interface(priceFeed);
     }
 
     // allow users to send money
-    function fund() public payable{
+    function fund() public payable {
         // PriceConverter.getConversionRate(msg.value) = msg.value.getConversionRate()
-        require(msg.value.getConversionRate(s_priceFeed) >= (MINUSD),"You need to spend more ETH!"); // msg.value : number of wei sent with message   
+        require(msg.value.getConversionRate(s_priceFeed) >= (MINUSD), "You need to spend more ETH!"); // msg.value : number of wei sent with message
         s_funders.push(msg.sender);
         s_addressToAmountFunded[msg.sender] += msg.value;
-    }   
-    
+    }
+
     // modifier to allow only owner to withdraw
     modifier onlyOwner() {
         // require(msg.sender == owner,"NOT OWNER!");
         if (msg.sender != owner) revert NotOwner();
-        _;      
+        _;
     }
 
     // allow owner to withdraw the money
-    function withdraw() public onlyOwner{
+    function withdraw() public onlyOwner {
         uint256 funderLength = s_funders.length;
-        for(uint256 funderIndex=0;funderIndex<funderLength;funderIndex++){
+        for (uint256 funderIndex = 0; funderIndex < funderLength; funderIndex++) {
             address funder = s_funders[funderIndex];
             s_addressToAmountFunded[funder] = 0;
         }
@@ -56,9 +56,10 @@ contract FundMe{
     }
 
     // check version of priceFeed
-    function getVersion() public view returns(uint256){
+    function getVersion() public view returns (uint256) {
         return s_priceFeed.version();
     }
+
     // if someone send eth without the fund function
     // call the fund function anyway to run the contract as it is supposed to be
     fallback() external payable {
@@ -70,15 +71,15 @@ contract FundMe{
     }
 
     // Getter function
-    function getaddressToAmountFunded(address fundingAddress) external view returns(uint256){
+    function getaddressToAmountFunded(address fundingAddress) external view returns (uint256) {
         return s_addressToAmountFunded[fundingAddress];
     }
 
-    function getFunders(uint256 index) external view returns(address){
+    function getFunders(uint256 index) external view returns (address) {
         return s_funders[index];
     }
 
-    function getOwner() external view returns(address){
+    function getOwner() external view returns (address) {
         return owner;
     }
 }
